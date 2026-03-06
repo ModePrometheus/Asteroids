@@ -7,7 +7,8 @@ from constants import (
     PLAYER_SPEED,
     PLAYER_TURN_SPEED,
     PLAYER_SHOOT_SPEED,
-    PLAYER_SHOOT_COOLDOWN_SECONDS
+    PLAYER_SHOOT_COOLDOWN_SECONDS,
+    PLAYER_IFRAMES
 )
 
 
@@ -16,6 +17,10 @@ class Player(CircleShape):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.shot_cooldown = 0
+        self.score = 0
+        self.lives = 3
+        self.immune = False
+        self.immune_time = 0
 
     def draw(self, screen):
         pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
@@ -30,6 +35,7 @@ class Player(CircleShape):
 
     def update(self, dt):
         self.shot_cooldown -= dt
+        self.immune_time -= dt
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_w]:
@@ -58,3 +64,9 @@ class Player(CircleShape):
         self.shot_cooldown = PLAYER_SHOOT_COOLDOWN_SECONDS
         shot = Shot(self.position.x, self.position.y)
         shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
+
+    def take_damage(self):
+        if self.immune_time > 0:
+            return
+        self.lives -= 1
+        self.immune_time = PLAYER_IFRAMES

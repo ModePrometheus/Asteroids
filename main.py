@@ -1,6 +1,7 @@
 import sys
 import pygame
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH
+import pygame.freetype
+from constants import ASTEROID_SCORE, SCREEN_HEIGHT, SCREEN_WIDTH
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -12,6 +13,8 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
+    font = pygame.freetype.Font("font/ko_activista_font.ttf", 18)
+
 
     #Groups
     updatable = pygame.sprite.Group()
@@ -28,6 +31,7 @@ def main():
     #Objects
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     asteroidfield = AsteroidField()
+
 
     dt = 0
 
@@ -46,20 +50,28 @@ def main():
         for asteroid in asteroids:
             if asteroid.collides_with(player):
                 log_event("player_hit")
-                print("Game Over!")
-                sys.exit()
+                if player.lives <= 0:
+                    print("Game Over!")
+                    print(f"You Scored {player.score} Points!")
+                    sys.exit()
+                player.take_damage()
+
 
         for asteroid in asteroids:
             for shot in shots:
                 if asteroid.collides_with(shot):
                     log_event("asteroid_shot")
-                    asteroid.split()
                     shot.kill()
+                    asteroid.split()
+                    player.score += ASTEROID_SCORE
 
         # Draw the screen
         screen.fill("black")
         for object in drawable:
             object.draw(screen)
+
+        font.render_to(screen, (10, 10), f"Score: {player.score}", (255, 255, 255))
+        font.render_to(screen, (10, 40), f"Lives: {player.lives}", (255, 255, 255))
 
         #Refresh Display
         pygame.display.flip()
